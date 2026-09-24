@@ -6,6 +6,8 @@ from pathlib import Path
 from pyproj import Transformer
 import requests
 import geopandas as gpd
+import osmnx as ox
+from shapely.geometry import box
 
 
 VUV_WFS_URL = (
@@ -115,4 +117,39 @@ def get_q100_flood_zones(
     response.raise_for_status()
 
     return response.json()
+
+
+def get_buildings(analysis_area):
+
+    tags = {"building": True}
+
+    buildings = ox.features_from_polygon(
+        analysis_area,
+        tags=tags
+    )
+
+    return buildings
+
+
+def split_bbox(
+    bbox: tuple[float, float, float, float]
+):
+    min_x, min_y, max_x, max_y = bbox
+
+    mid_x = (min_x + max_x) / 2
+    mid_y = (min_y + max_y) / 2
+
+    return [
+        box(min_x, min_y, mid_x, mid_y),
+        box(mid_x, min_y, max_x, mid_y),
+        box(min_x, mid_y, mid_x, max_y),
+        box(mid_x, mid_y, max_x, max_y),
+    ]
+
+
+def to_wgs84(geometry, source_crs="EPSG:5514"):
+    return gpd.GeoSeries(
+        [geometry],
+        crs=source_crs
+    ).to_crs("EPSG:4326").iloc[0]
 
