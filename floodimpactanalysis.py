@@ -1,4 +1,4 @@
-from src.flimpanal_geo import geocode, create_bbox, get_q100_flood_zones, get_buildings, split_bbox, to_wgs84
+from src.flimpanal_geo import geocode, create_bbox, get_q100_flood_zones, get_buildings, split_bbox, to_wgs84, prepare_buildings, find_affected_buildings, prepare_flood_zones, retrieve_buildings
 import geopandas as gpd
 from shapely.geometry import box
 import pandas as pd
@@ -8,10 +8,6 @@ lat, lon = geocode("Prague")
 
 bbox = create_bbox(lat, lon, 2)
 result = get_q100_flood_zones(bbox)
-flood_zones = gpd.GeoDataFrame.from_features(
-    result["features"],
-    crs="EPSG:5514"
-)
 
 #print(flood_zones)
 #print(f"CRS: {flood_zones.crs}")
@@ -21,85 +17,46 @@ flood_zones = gpd.GeoDataFrame.from_features(
 min_x, min_y, max_x, max_y = bbox
 analysis_area = box(min_x, min_y, max_x, max_y)
 
-clipped_flood_zones = gpd.clip(flood_zones, analysis_area)
-
 #print(f"Clipped geometry types: {clipped_flood_zones.geometry.geom_type.tolist()}")
 #print(f"Clipped bounds: {clipped_flood_zones.total_bounds}")
 #print(f"Clipped area: {clipped_flood_zones.geometry.area.sum():,.0f} m²")
 
-"""
-analysis_area_4326 = gpd.GeoSeries(
-    [analysis_area],
-    crs="EPSG:5514"
-).to_crs("EPSG:4326").iloc[0]
+######tiles = split_bbox(bbox)
+######building_tiles = []
 
-print(analysis_area_4326)
-print(analysis_area_4326.bounds)
-"""
+######for i, tile in enumerate(tiles, start=1):
+######    tile_4326 = to_wgs84(tile)
+######
+######    print(f"\nRetrieving tile {i}...")
+######
+######    buildings = get_buildings(tile_4326)
+######
+######    print(f"Tile {i}: {len(buildings)} buildings")
+######    #print(buildings.index.names)
+######    #print(buildings.index[:10])
+######
+######    building_tiles.append(buildings)
 
-tiles = split_bbox(bbox)
-building_tiles = []
+building_tiles = retrieve_buildings(bbox)
+buildings = prepare_buildings(building_tiles, analysis_area)
 
-for i, tile in enumerate(tiles, start=1):
-    tile_4326 = to_wgs84(tile)
+print(f"Prepared buildings: {len(buildings)}")
+print(f"Buildings CRS: {buildings.crs}")
+print(buildings.geometry.geom_type.value_counts())
+print(f"Building bounds: {buildings.total_bounds}")
 
-    print(f"\nRetrieving tile {i}...")
+flood_data = get_q100_flood_zones(bbox)
+flood_zones = prepare_flood_zones(flood_data, analysis_area)
 
-    buildings = get_buildings(tile_4326)
+print(f"Prepared flood zones: {len(flood_zones)}")
+print(f"Flood CRS: {flood_zones.crs}")
+print(f"Flood area: {flood_zones.geometry.area.sum():.2f} m²")
+print(f"Flood bounds: {flood_zones.total_bounds}")
 
-    print(f"Tile {i}: {len(buildings)} buildings")
-    #print(buildings.index.names)
-    #print(buildings.index[:10])
+affected_buildings = find_affected_buildings(buildings, flood_zones)
 
-    building_tiles.append(buildings)
-
-all_buildings = pd.concat(building_tiles)
-
-print(f"Buildings before deduplication: {len(all_buildings)}")
-print(f"Duplicate OSM features: {all_buildings.index.duplicated().sum()}")
-
-unique_buildings = all_buildings[
-    ~all_buildings.index.duplicated(keep="first")
-]
-
-print(f"Unique buildings: {len(unique_buildings)}")
-
-print(type(unique_buildings))
-print(unique_buildings.crs)
-
-buildings_5514 = unique_buildings.to_crs("EPSG:5514")
-
-buildings_clipped = gpd.clip(
-    buildings_5514,
-    analysis_area
-)
-
-buildings_clipped = buildings_clipped[
-    buildings_clipped.geometry.geom_type.isin(
-        ["Polygon", "MultiPolygon"]
-    )
-].copy()
-
-print(f"Unique OSM features: {len(unique_buildings)}")
-print(f"Usable buildings after clipping: {len(buildings_clipped)}")
-print(buildings_clipped.geometry.geom_type.value_counts())
-print(f"Buildings CRS: {buildings_clipped.crs}")
-print(f"Building bounds: {buildings_clipped.total_bounds}")
-
-flood_area = clipped_flood_zones.geometry.union_all()
-
-affected_buildings = buildings_clipped[
-    buildings_clipped.geometry.intersects(flood_area)
-].copy()
-
-print(f"Total buildings: {len(buildings_clipped)}")
+print(f"Total buildings: {len(buildings)}")
 print(f"Affected buildings: {len(affected_buildings)}")
-
-affected_buildings["flooded_area_m2"] = (
-    affected_buildings.geometry
-    .intersection(flood_area)
-    .area
-)
 
 print(affected_buildings["flooded_area_m2"].describe())
 print(
@@ -113,16 +70,6 @@ print(
     .head(10)
 )
 
-
-affected_buildings["building_area_m2"] = (
-    affected_buildings.geometry.area
-)
-
-affected_buildings["flooded_pct"] = (
-    affected_buildings["flooded_area_m2"]
-    / affected_buildings["building_area_m2"]
-    * 100
-)
 
 print(
     affected_buildings[
@@ -157,44 +104,5 @@ print("> 10% and < 100%:",
 print("~100%:",
       (affected_buildings["flooded_pct"] >= 99.999).sum())
 
-"""
-test_bbox = (-744809.66, -1045012.86, -742809.66, -1043012.86)
-min_x, min_y, max_x, max_y = test_bbox
-analysis_area = box(min_x, min_y, max_x, max_y)
-analysis_area_4326 = gpd.GeoSeries(
-    [analysis_area],
-    crs="EPSG:5514"
-).to_crs("EPSG:4326").iloc[0]
-
-buildings = get_buildings(analysis_area_4326)
-
-print(f"Buildings retrieved: {len(buildings)}")
-print(f"Buildings CRS: {buildings.crs}")
-print(buildings.geometry.geom_type.value_counts())
-"""
-
-"""
-buildings_5514 = buildings.to_crs("EPSG:5514")
-
-buildings_clipped = gpd.clip(
-    buildings_5514,
-    analysis_area
-)
-
-print(f"Buildings retrieved: {len(buildings_5514)}")
-print(f"Buildings after clipping: {len(buildings_clipped)}")
-print(f"Building geometry types:")
-print(buildings_clipped.geometry.geom_type.value_counts())
-print(f"Building bounds: {buildings_clipped.total_bounds}")
-
-buildings_clipped = buildings_clipped[
-    buildings_clipped.geometry.geom_type.isin(
-        ["Polygon", "MultiPolygon"]
-    )
-].copy()
-
-print(f"Usable building footprints: {len(buildings_clipped)}")
-print(buildings_clipped.geometry.geom_type.value_counts())
-"""
 
 

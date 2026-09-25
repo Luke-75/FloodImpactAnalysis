@@ -8,6 +8,7 @@ import requests
 import geopandas as gpd
 import osmnx as ox
 from shapely.geometry import box
+import pandas as pd
 
 
 VUV_WFS_URL = (
@@ -152,4 +153,109 @@ def to_wgs84(geometry, source_crs="EPSG:5514"):
         [geometry],
         crs=source_crs
     ).to_crs("EPSG:4326").iloc[0]
+
+
+def prepare_buildings(
+    building_tiles: list[gpd.GeoDataFrame],
+    analysis_area
+) -> gpd.GeoDataFrame:
+
+    # concatenate retrieved tiles --> all buildings
+    buildings = pd.concat(building_tiles)
+
+    # dedupliction
+    buildings = buildings[
+        ~buildings.index.duplicated(keep="first")
+    ].copy()
+
+    buildings = buildings.to_crs("EPSG:5514")
+
+    # filtering out streets, etc.
+    buildings = buildings[
+        buildings.geometry.geom_type.isin(
+            ["Polygon", "MultiPolygon"]
+        )
+    ].copy()
+
+    # list of buildings in the area of analysis
+    buildings = buildings[
+        buildings.geometry.intersects(analysis_area)
+    ].copy()
+
+    return buildings
+
+
+
+def find_affected_buildings(
+    buildings: gpd.GeoDataFrame,
+    flood_zones: gpd.GeoDataFrame
+) -> gpd.GeoDataFrame:
+
+    flood_area = flood_zones.geometry.union_all()
+
+    affected = buildings[
+        buildings.geometry.intersects(flood_area)
+    ].copy()
+
+    affected["building_area_m2"] = affected.geometry.area
+
+    affected["flooded_area_m2"] = (
+        affected.geometry
+        .intersection(flood_area)
+        .area
+    )
+
+    affected = affected[
+        affected["flooded_area_m2"] > 0
+    ].copy()
+
+    affected["flooded_pct"] = (
+        affected["flooded_area_m2"]
+        / affected["building_area_m2"]
+        * 100
+    )
+
+    return affected
+
+
+def prepare_flood_zones(
+    flood_data: dict,
+    analysis_area
+) -> gpd.GeoDataFrame:
+
+    flood_zones = gpd.GeoDataFrame.from_features(
+        flood_data["features"],
+        crs="EPSG:5514"
+    )
+
+    flood_zones = gpd.clip(
+        flood_zones,
+        analysis_area
+    )
+
+    return flood_zones
+
+
+def retrieve_buildings(
+    bbox: tuple[float, float, float, float]
+) -> list[gpd.GeoDataFrame]:
+
+    tiles = split_bbox(bbox)
+    building_tiles = []
+
+    for i, tile in enumerate(tiles, start=1):
+        print(f"Retrieving tile {i}...")
+
+        tile_4326 = to_wgs84(tile)
+
+        buildings = get_buildings(tile_4326)
+
+        print(f"Tile {i}: {len(buildings)} buildings")
+
+        building_tiles.append(buildings)
+
+    return building_tiles
+
+
+
 
