@@ -10,6 +10,9 @@ import osmnx as ox
 from shapely.geometry import box
 import pandas as pd
 
+# TODO: Validate that the analysis area is within the Czech Republic.
+# VUV flood-zone data used by this application only covers Czech territory.
+
 
 VUV_WFS_URL = (
     "https://ags2.vuv.cz/arcgis/services/isvs_voda/"
@@ -257,5 +260,31 @@ def retrieve_buildings(
     return building_tiles
 
 
+
+def analyze_location(
+    location: str,
+    radius_km: float
+):
+    lat, lon = geocode(location)
+
+    bbox = create_bbox(lat, lon, radius_km)
+    analysis_area = box(*bbox)
+
+    flood_data = get_q100_flood_zones(bbox)
+    flood_zones = prepare_flood_zones(flood_data, analysis_area)
+
+    building_tiles = retrieve_buildings(bbox)
+    buildings = prepare_buildings(building_tiles, analysis_area)
+
+    affected_buildings = find_affected_buildings(buildings, flood_zones)
+
+    return (
+        lat,
+        lon,
+        analysis_area,
+        flood_zones,
+        buildings,
+        affected_buildings,
+    )
 
 
