@@ -21,19 +21,25 @@ def run_ui():
         step=0.5
     )
 
+
     if st.button("Analyze"):
-        with st.spinner("Analyzing flood impact..."):
-            (
-                lat,
-                lon,
-                analysis_area,
-                flood_zones,
-                buildings,
-                affected_buildings,
-            ) = analyze_location(
-                location,
-                radius_km
-            )
+
+        try:
+            with st.spinner("Analyzing flood impact..."):
+                (
+                    lat,
+                    lon,
+                    analysis_area,
+                    flood_zones,
+                    buildings,
+                    affected_buildings,
+                ) = analyze_location(
+                    location,
+                    radius_km
+                )
+        except ValueError as e:
+            st.error(str(e))
+        return
 
         st.success("Analysis complete")
 

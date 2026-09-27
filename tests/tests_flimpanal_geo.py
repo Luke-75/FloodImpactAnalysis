@@ -296,3 +296,60 @@ def test_prepare_buildings_preserves_full_building_geometry():
     )
 
 
+
+def test_geocode_returns_coordinates(monkeypatch):
+    class FakeLocation:
+        latitude = 50.0874654
+        longitude = 14.4212535
+
+    class FakeNominatim:
+        def __init__(self, user_agent):
+            pass
+
+        def geocode(self, query):
+            return FakeLocation()
+
+    monkeypatch.setattr(
+        "geopy.geocoders.Nominatim",
+        FakeNominatim
+    )
+
+    monkeypatch.setenv(
+        "NOMINATIM_USER_AGENT_NAME",
+        "test-agent"
+    )
+
+    lat, lon = flimpanal_geo.geocode("Prague")
+
+    assert lat == pytest.approx(50.0874654)
+    assert lon == pytest.approx(14.4212535)
+
+
+
+def test_geocode_raises_error_when_location_not_found(monkeypatch):
+    class FakeNominatim:
+        def __init__(self, user_agent):
+            pass
+
+        def geocode(self, query):
+            return None
+
+    monkeypatch.setattr(
+        "geopy.geocoders.Nominatim",
+        FakeNominatim
+    )
+
+    monkeypatch.setenv(
+        "NOMINATIM_USER_AGENT_NAME",
+        "test-agent"
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Could not find location for address"
+    ):
+        flimpanal_geo.geocode("nonexistent-place")
+
+
+
+    

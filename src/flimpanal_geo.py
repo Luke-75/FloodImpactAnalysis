@@ -41,10 +41,11 @@ def geocode(address: str) -> tuple[float, float]:
         query = address
     )
     if location:
-        return{
-            location.latitude,
-            location.longitude 
-        }
+        #return{
+        #    location.latitude,
+        #    location.longitude 
+        #}
+        return location.latitude, location.longitude
     else:
         raise ValueError(f"Could not find location for address: {address}")
 
