@@ -96,25 +96,9 @@ def test_find_affected_building_touching_flood_boundary():
         ["building_area_m2", "flooded_area_m2", "flooded_pct"]
     ])
 
+    assert result.empty
 
 
-def test_find_affected_building_touching_flood_boundary():
-    buildings = gpd.GeoDataFrame(
-        geometry=[box(0, 0, 10, 10)],
-        crs="EPSG:5514"
-    )
-
-    flood_zones = gpd.GeoDataFrame(
-        geometry=[box(10, 0, 20, 10)],
-        crs="EPSG:5514"
-    )
-
-    result = flimpanal_geo.find_affected_buildings(
-        buildings,
-        flood_zones
-    )
-
-    assert len(result) == 0
 
 
 def test_prepare_flood_zones_clips_to_analysis_area():
@@ -151,6 +135,28 @@ def test_prepare_flood_zones_clips_to_analysis_area():
     assert tuple(result.total_bounds) == pytest.approx(
         (0, 0, 10, 10)
     )
+
+
+
+
+def test_prepare_flood_zones_handles_no_features():
+    analysis_area = gpd.GeoDataFrame(
+        geometry=[box(0, 0, 100, 100)],
+        crs="EPSG:5514"
+    )
+
+    flood_data = {
+        "type": "FeatureCollection",
+        "features": []
+    }
+
+    flood_zones = flimpanal_geo.prepare_flood_zones(
+        flood_data,
+        analysis_area
+    )
+
+    assert flood_zones.empty
+
 
 
 
@@ -352,4 +358,27 @@ def test_geocode_raises_error_when_location_not_found(monkeypatch):
 
 
 
-    
+def test_find_affected_buildings_with_no_flood_zones():
+    buildings = gpd.GeoDataFrame(
+        geometry=[
+            box(0, 0, 10, 10),
+            box(20, 20, 30, 30),
+        ],
+        crs="EPSG:5514"
+    )
+
+    flood_zones = gpd.GeoDataFrame(
+        geometry=[],
+        crs="EPSG:5514"
+    )
+
+    affected = flimpanal_geo.find_affected_buildings(
+        buildings,
+        flood_zones
+    )
+
+    assert affected.empty
+
+
+
+

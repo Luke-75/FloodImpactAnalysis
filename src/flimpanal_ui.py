@@ -3,6 +3,7 @@ import streamlit as st
 from src.flimpanal_geo import analyze_location
 from src.flimpanal_map import create_map
 import streamlit.components.v1 as components
+import requests
 
 
 def run_ui():
@@ -39,7 +40,15 @@ def run_ui():
                 )
         except ValueError as e:
             st.error(str(e))
-        return
+            return
+
+        except requests.RequestException:
+            st.error("Could not retrieve external data. Please try again later.")
+            return
+
+        #except requests.RequestException:
+        #    st.error("Could not retrieve flood data. Please try again later.")
+        #    return
 
         st.success("Analysis complete")
 

@@ -227,6 +227,12 @@ def prepare_flood_zones(
     analysis_area
 ) -> gpd.GeoDataFrame:
 
+    if not flood_data["features"]:
+        return gpd.GeoDataFrame(
+            geometry=[],
+            crs="EPSG:5514"
+        )
+
     flood_zones = gpd.GeoDataFrame.from_features(
         flood_data["features"],
         crs="EPSG:5514"
