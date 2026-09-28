@@ -46,11 +46,19 @@ def run_ui():
             st.error("Could not retrieve external data. Please try again later.")
             return
 
-        #except requests.RequestException:
-        #    st.error("Could not retrieve flood data. Please try again later.")
-        #    return
-
-        st.success("Analysis complete")
+        #st.success("Analysis complete")
+        if flood_zones.empty:
+            st.info(
+                "No Q100 flood zone was found within the analysis area."
+            )
+        else:
+            if flood_zones.empty:
+                st.info(
+                "Analysis complete. No Q100 flood zone was found "
+                "within the analysis area."
+                )
+            else:
+                st.success("Analysis complete")
 
         #st.write(f"Total buildings: {len(buildings)}")
         #st.write(f"Affected buildings: {len(affected_buildings)}")

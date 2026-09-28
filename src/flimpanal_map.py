@@ -84,30 +84,31 @@ def create_map(
     ).add_to(map)
     """
 
-    folium.GeoJson(
-        affected_buildings_4326,
-        name="Affected buildings",
-        style_function=lambda feature: {
-            "color": "red",
-            "weight": 1,
-            "fillColor": "red",
-            "fillOpacity": 0.7,
-        },
-        tooltip=folium.GeoJsonTooltip(
-            fields=[
-                "building_area_m2",
-                "flooded_area_m2",
-                "flooded_pct",
-            ],
-            aliases=[
-                "Building area (m²):",
-                "Flooded area (m²):",
-                "Flooded (%):",
-            ],
-            localize=True,
-            sticky=False,
-        ),
-    ).add_to(map)
+    if not affected_buildings_4326.empty:
+        folium.GeoJson(
+            affected_buildings_4326,
+            name="Affected buildings",
+            style_function=lambda feature: {
+                "color": "red",
+                "weight": 1,
+                "fillColor": "red",
+                "fillOpacity": 0.7,
+            },
+            tooltip=folium.GeoJsonTooltip(
+                fields=[
+                    "building_area_m2",
+                    "flooded_area_m2",
+                    "flooded_pct",
+                ],
+                aliases=[
+                    "Building area (m²):",
+                    "Flooded area (m²):",
+                    "Flooded (%):",
+                ],
+                localize=True,
+                sticky=False,
+            ),
+        ).add_to(map)
 
     min_lon, min_lat, max_lon, max_lat = analysis_area_4326.bounds
 
