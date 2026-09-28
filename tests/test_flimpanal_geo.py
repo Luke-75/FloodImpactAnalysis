@@ -381,4 +381,49 @@ def test_find_affected_buildings_with_no_flood_zones():
 
 
 
+def test_prepare_buildings_handles_empty_tiles():
+    analysis_area = box(0, 0, 100, 100)
 
+    empty_tile = gpd.GeoDataFrame(
+        geometry=[],
+        crs="EPSG:4326"
+    )
+
+    building_tiles = [
+        empty_tile.copy(),
+        empty_tile.copy(),
+        empty_tile.copy(),
+        empty_tile.copy(),
+    ]
+
+    buildings = flimpanal_geo.prepare_buildings(
+        building_tiles,
+        analysis_area
+    )
+
+    assert buildings.empty
+    assert buildings.crs.to_epsg() == 5514
+
+
+
+def test_find_affected_buildings_with_no_buildings():
+    buildings = gpd.GeoDataFrame(
+        geometry=[],
+        crs="EPSG:5514"
+    )
+
+    flood_zones = gpd.GeoDataFrame(
+        geometry=[box(0, 0, 100, 100)],
+        crs="EPSG:5514"
+    )
+
+    result = flimpanal_geo.find_affected_buildings(
+        buildings,
+        flood_zones
+    )
+
+    assert result.empty
+
+
+
+    
