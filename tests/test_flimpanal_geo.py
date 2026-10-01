@@ -426,4 +426,113 @@ def test_find_affected_buildings_with_no_buildings():
 
 
 
-    
+def test_analysis_area_is_within_czechia():
+    point = gpd.GeoSeries(
+        [Point(14.4213, 50.0875)],
+        crs="EPSG:4326"
+    ).to_crs("EPSG:5514")
+
+    analysis_area = gpd.GeoDataFrame(
+        geometry=[point.iloc[0].buffer(1000)],
+        crs="EPSG:5514"
+    )
+
+    result = flimpanal_geo.is_analysis_area_within_czechia(
+        analysis_area
+    )
+
+    assert result is True
+
+
+
+def test_analysis_area_outside_czechia():
+    point = gpd.GeoSeries(
+        [Point(16.3738, 48.2082)],
+        crs="EPSG:4326"
+    ).to_crs("EPSG:5514")
+
+    analysis_area = gpd.GeoDataFrame(
+        geometry=[point.iloc[0].buffer(1000)],
+        crs="EPSG:5514"
+    )
+
+    result = flimpanal_geo.is_analysis_area_within_czechia(
+        analysis_area
+    )
+
+    assert result is False
+
+
+
+def test_analysis_area_crossing_czech_border():
+    point = gpd.GeoSeries(
+        [Point(12.10, 50.25)],
+        crs="EPSG:4326"
+    ).to_crs("EPSG:5514")
+
+    analysis_area = gpd.GeoDataFrame(
+        geometry=[point.iloc[0].buffer(5000)],
+        crs="EPSG:5514"
+    )
+
+    result = flimpanal_geo.is_analysis_area_within_czechia(
+        analysis_area
+    )
+
+    assert result is False
+
+
+
+
+def test_analyze_location_stops_when_area_outside_czechia(
+    monkeypatch
+):
+    monkeypatch.setattr(
+        flimpanal_geo,
+        "geocode",
+        lambda location: (48.2082, 16.3738)
+    )
+
+    monkeypatch.setattr(
+        flimpanal_geo,
+        "is_analysis_area_within_czechia",
+        lambda analysis_area: False
+    )
+
+    flood_data_called = False
+    buildings_called = False
+
+    def fake_retrieve_flood_data(*args, **kwargs):
+        nonlocal flood_data_called
+        flood_data_called = True
+
+    def fake_retrieve_buildings(*args, **kwargs):
+        nonlocal buildings_called
+        buildings_called = True
+
+    monkeypatch.setattr(
+        flimpanal_geo,
+        "get_q100_flood_zones",
+        fake_retrieve_flood_data
+    )
+
+    monkeypatch.setattr(
+        flimpanal_geo,
+        "retrieve_buildings",
+        fake_retrieve_buildings
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="entirely within the Czech Republic"
+    ):
+        flimpanal_geo.analyze_location(
+            "Vienna",
+            2.0
+        )
+
+    assert flood_data_called is False
+    assert buildings_called is False
+
+
+

@@ -277,6 +277,16 @@ def analyze_location(
     bbox = create_bbox(lat, lon, radius_km)
     analysis_area = box(*bbox)
 
+    # bbox --> geodataframe
+    analysis_area_gdf = gpd.GeoDataFrame(geometry=[analysis_area], crs="EPSG:5514")
+
+    if not is_analysis_area_within_czechia(analysis_area_gdf):
+        raise ValueError(
+            "The analysis area must be entirely within the Czech Republic."
+        )
+
+    # Only now retrieve flood zones and buildings
+
     flood_data = get_q100_flood_zones(bbox)
     flood_zones = prepare_flood_zones(flood_data, analysis_area)
 
@@ -293,5 +303,25 @@ def analyze_location(
         buildings,
         affected_buildings,
     )
+
+
+
+def is_analysis_area_within_czechia(
+    analysis_area: gpd.GeoDataFrame
+) -> bool:
+
+    project_root = Path(__file__).resolve().parent.parent
+    boundary_path = project_root / "data" / "czech_republic.geojson"
+
+    czechia = gpd.read_file(boundary_path)
+    czechia = czechia.to_crs(analysis_area.crs)
+
+    czechia_geometry = czechia.geometry.union_all()
+
+    return bool(
+        analysis_area.geometry.within(czechia_geometry).all()
+    )
+
+
 
 
