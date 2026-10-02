@@ -24,38 +24,38 @@ A geospatial application for identifying buildings whose footprints intersect Q1
 
 ## How It Works
 
-geocode
-   ↓
-create analysis area
-   ↓
-validate Czech coverage
-   ├── invalid → stop
-   │
-   └── valid
-        ↓
-      VÚV request
-        ↓
-      OSM request
-        ↓
-      analysis
+geocode  
+   ↓  
+create analysis area  
+   ↓  
+validate Czech coverage  
+   ├── invalid → stop  
+   │  
+   └── valid  
+        ↓  
+      VÚV request  
+        ↓  
+      OSM request  
+        ↓  
+      analysis  
 
 
 ## Architecture
 
-FloodImpactAnalysis/
-├── floodimpactanalysis.py
-├── data/
-│   └── czech_republic.geojson
-├── screenshots/
-│   ├── prague-analysis.png
-│   └── prague-map.png
-├── src/
-│   ├── flimpanal_geo.py
-│   ├── flimpanal_map.py
-│   └── flimpanal_ui.py
-└── tests/
-    ├── test_flimpanal_geo.py
-    └── test_flimpanal_map.py
+FloodImpactAnalysis/  
+├── floodimpactanalysis.py  
+├── data/  
+│   └── czech_republic.geojson  
+├── screenshots/  
+│   ├── prague-analysis.png  
+│   └── prague-map.png  
+├── src/  
+│   ├── flimpanal_geo.py  
+│   ├── flimpanal_map.py  
+│   └── flimpanal_ui.py  
+└── tests/  
+    ├── test_flimpanal_geo.py  
+    └── test_flimpanal_map.py  
 
 
 ## Technology Stack
@@ -69,10 +69,10 @@ FloodImpactAnalysis/
 
 ## External Services/Data Used
 
-Nominatim                                       → location geocoding
-Natural Earth                                   → Czech Republic coverage validation
-Výzkumný ústav vodohospodářský (VÚV)            → Q100 flood-zone geometry
-OpenStreetMap                                   → building footprints
+Nominatim                                       → location geocoding  
+Natural Earth                                   → Czech Republic coverage validation  
+Výzkumný ústav vodohospodářský (VÚV)            → Q100 flood-zone geometry  
+OpenStreetMap                                   → building footprints  
 
 ### Nominatim
 
@@ -181,10 +181,9 @@ Run the complete test suite from the project root:
 
 ## Example
 
-For example, analyzing `Prague` with a 2 km radius produces an analysis
-area covering central Prague.
-
-For this area, the application:
+For example, analyzing `Prague` with a 2 km radius produces an analysis area covering central Prague.  
+  
+For this area, the application:  
 
 - retrieves 11,530 building footprints from OpenStreetMap,
 - identifies 395 buildings with positive-area overlap with the Q100 flood zone,
@@ -193,15 +192,14 @@ For this area, the application:
 - calculates the flooded footprint area and percentage exposure for each
   affected building.
 
-The interactive map displays:
+The interactive map displays:  
 
 - the analysis-area boundary,
 - the Q100 flood zone,
 - affected building footprints.
 
-Hovering over an affected building displays its total footprint area,
-flooded footprint area, and percentage exposure.
-
+Hovering over an affected building displays its total footprint area, flooded footprint area, and percentage exposure.  
+  
 
 ## Screenshots
 
