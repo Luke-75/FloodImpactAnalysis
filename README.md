@@ -43,13 +43,29 @@ validate Czech coverage
 ## Architecture
 
 FloodImpactAnalysis/
+├── floodimpactanalysis.py
 ├── data/
 │   └── czech_republic.geojson
+├── screenshots/
+│   ├── prague-analysis.png
+│   └── prague-map.png
 ├── src/
 │   ├── flimpanal_geo.py
 │   ├── flimpanal_map.py
 │   └── flimpanal_ui.py
+└── tests/
+    ├── test_flimpanal_geo.py
+    └── test_flimpanal_map.py
 
+
+## Technology Stack
+
+- **Python** — application language
+- **Streamlit** — web UI
+- **OSMnx / OpenStreetMap** — geospatial data retrieval
+- **GeoPandas / Shapely / pyproj** — geospatial processing
+- **GeoPy** — geocoding and distance utilities
+- **Folium** — interactive map visualization
 
 ## External Services/Data Used
 
@@ -102,4 +118,104 @@ The flood-zone polygons provided by this dataset are orientational. For authorit
 
 Flood-zone metadata:
 https://heis.vuv.cz/xmicka/record/basic/CZ-VUV-MD-ZaplavUzemi
+
+
+## Getting Started
+
+The examples below use Windows.
+
+### 1. Clone the repository
+
+    git clone https://github.com/Luke-75/FloodImpactAnalysis.git
+
+### 2. Create and activate a virtual environment
+
+    cd FloodImpactAnalysis
+
+    python -m venv .venv
+    .venv\Scripts\activate
+
+### 3. Install dependencies
+
+    python -m pip install -r requirements.txt
+
+### 4. Configure the application
+
+The application uses Nominatim for geocoding and requires an identifying User-Agent.
+
+Copy `.env.example` to `.env`:
+
+    copy .env.example .env
+
+Then edit `.env` and set a descriptive application identifier:
+
+    NOMINATIM_USER_AGENT_NAME="FloodImpactAnalysis"
+
+The `.env` file is excluded from Git and should not be committed.
+
+### 5. Run the application
+
+Run floodimpactanalysis.py through Streamlit:
+
+    python -m streamlit run floodimpactanalysis.py
+
+
+## Running Tests
+
+The project includes automated tests for geospatial processing, external-data handling, application orchestration, and map generation.
+
+The tests are organized into two modules:
+
+    tests/
+    ├── test_flimpanal_geo.py
+    └── test_flimpanal_map.py
+
+Install the development dependencies:
+
+    python -m pip install -r requirements-dev.txt
+
+Run the complete test suite from the project root:
+
+    python -m pytest tests -v
+
+
+## Example
+
+For example, analyzing `Prague` with a 2 km radius produces an analysis
+area covering central Prague.
+
+For this area, the application:
+
+- retrieves 11,530 building footprints from OpenStreetMap,
+- identifies 395 buildings with positive-area overlap with the Q100 flood zone,
+- calculates approximately 1.77 km² of Q100 flood-zone area within the
+  analysis area,
+- calculates the flooded footprint area and percentage exposure for each
+  affected building.
+
+The interactive map displays:
+
+- the analysis-area boundary,
+- the Q100 flood zone,
+- affected building footprints.
+
+Hovering over an affected building displays its total footprint area,
+flooded footprint area, and percentage exposure.
+
+
+## Screenshots
+
+### Analysis output
+
+![FloodImpactAnalysis - Analysis Output](screenshots/prague-analysis.png)
+
+### Building exposure detail
+
+![FloodImpactAnalysis - Interactive map](screenshots/prague-map.png)
+
+
+
+
+
+
 
