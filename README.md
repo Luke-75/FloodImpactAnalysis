@@ -24,38 +24,38 @@ A geospatial application for identifying buildings whose footprints intersect Q1
 
 ## How It Works
 
-geocode  
-   ↓  
-create analysis area  
-   ↓  
-validate Czech coverage  
-   ├── invalid → stop  
-   │  
-   └── valid  
+        geocode  
         ↓  
-      VÚV request  
+        create analysis area  
         ↓  
-      OSM request  
-        ↓  
-      analysis  
+        validate Czech coverage  
+        ├── invalid → stop  
+        │  
+        └── valid  
+                ↓  
+            VÚV request  
+                ↓  
+            OSM request  
+                ↓  
+            analysis  
 
 
 ## Architecture
 
-FloodImpactAnalysis/  
-├── floodimpactanalysis.py  
-├── data/  
-│   └── czech_republic.geojson  
-├── screenshots/  
-│   ├── prague-analysis.png  
-│   └── prague-map.png  
-├── src/  
-│   ├── flimpanal_geo.py  
-│   ├── flimpanal_map.py  
-│   └── flimpanal_ui.py  
-└── tests/  
-    ├── test_flimpanal_geo.py  
-    └── test_flimpanal_map.py  
+        FloodImpactAnalysis/  
+        ├── floodimpactanalysis.py  
+        ├── data/  
+        │   └── czech_republic.geojson  
+        ├── screenshots/  
+        │   ├── prague-analysis.png  
+        │   └── prague-map.png  
+        ├── src/  
+        │   ├── flimpanal_geo.py  
+        │   ├── flimpanal_map.py  
+        │   └── flimpanal_ui.py  
+        └── tests/  
+            ├── test_flimpanal_geo.py  
+            └── test_flimpanal_map.py  
 
 
 ## Technology Stack
@@ -210,10 +210,5 @@ Hovering over an affected building displays its total footprint area, flooded fo
 ### Building exposure detail
 
 ![FloodImpactAnalysis - Interactive map](screenshots/prague-map.png)
-
-
-
-
-
 
 
