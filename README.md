@@ -81,7 +81,7 @@ Natural-language input is used only to extract a location and analysis radius in
 - **OSMnx / OpenStreetMap** — geospatial data retrieval
 - **GeoPandas / Shapely / pyproj** — geospatial processing
 - **GeoPy** — geocoding and distance utilities
-- **Folium** — interactive map visualization
+- **Folium / CARTO/Positron** — interactive map visualization
 - **OpenAI API** — natural-language request interpretation
 - **Pydantic** — structured request validation
 
@@ -92,6 +92,7 @@ Nominatim                                       → location geocoding
 Natural Earth                                   → Czech Republic coverage validation  
 Výzkumný ústav vodohospodářský (VÚV)            → Q100 flood-zone geometry  
 OpenStreetMap                                   → building footprints  
+CARTO Basemap                                   → basemap tiles providing visual context  
 
 ### OpenAI
 
@@ -99,7 +100,7 @@ Used to interpret natural-language analysis requests and extract structured loca
   
 The extracted values are validated by the application before geospatial processing begins. OpenAI is not used for flood-zone geometry, spatial intersection, exposure calculations, or determination of affected buildings.  
 
-OpenAI Usage Policies:
+OpenAI Usage Policies:  
 https://openai.com/policies/usage-policies/
 
 
@@ -109,29 +110,29 @@ Used for forward geocoding of user-entered locations.
 
 This application uses the public Nominatim service operated by the OpenStreetMap Foundation. Use of the public service is subject to the Nominatim Usage Policy, including an absolute maximum of one request per second and use of an identifying User-Agent.
 
-Nominatim Usage Policy:
+Nominatim Usage Policy:  
 https://operations.osmfoundation.org/policies/nominatim/
 
 
 ### Natural Earth
 
-Used to validate that the complete analysis area lies within the Czech Republic.
+Used to validate that the complete analysis area lies within the Czech Republic.  
 
-The application uses the Natural Earth 1:10m Admin 0 Countries dataset. Natural Earth vector and raster data is in the public domain.
-
-Natural Earth Terms of Use:
+The application uses the Natural Earth 1:10m Admin 0 Countries dataset. Natural Earth vector and raster data is in the public domain.  
+  
+Natural Earth Terms of Use:  
 https://www.naturalearthdata.com/about/terms-of-use/
 
 
 ### OpenStreetMap
 
-Used as the source of building footprints.
+Used as the source of building footprints.  
 
-OpenStreetMap data is licensed under the Open Data Commons Open Database License (ODbL). OpenStreetMap and its contributors must be credited when the data is used.
+OpenStreetMap data is licensed under the Open Data Commons Open Database License (ODbL). OpenStreetMap and its contributors must be credited when the data is used.  
 
-© OpenStreetMap contributors
+© OpenStreetMap contributors  
 
-Copyright and License:
+Copyright and License:  
 https://www.openstreetmap.org/copyright
 
 
@@ -145,8 +146,18 @@ Source: Výzkumný ústav vodohospodářský T. G. Masaryka, v.v.i. (VÚV TGM)
 
 The flood-zone polygons provided by this dataset are orientational. For authoritative information about the exact extent of a flood zone, consult the relevant water authority or watercourse administrator.
 
-Flood-zone metadata:
+Flood-zone metadata:  
 https://heis.vuv.cz/xmicka/record/basic/CZ-VUV-MD-ZaplavUzemi
+
+
+### CARTO Basemap (Positron)
+
+Used as the basemap tile layer for the interactive map, providing geographic context for the analysis results.  
+  
+A CARTO Basemaps API key is required to display the Positron raster basemap. The application can still display analysis results without the basemap if no CARTO API key is configured.  
+  
+CARTO Basemaps API Key:  
+https://www.carto.com/basemaps/apikey  
 
 
 ## Getting Started
@@ -176,12 +187,15 @@ Copy `.env.example` to `.env`:
 
     copy .env.example .env
 
-Then edit `.env` and configure the required environment variables:
+Then edit `.env` and configure the required environment variables:  
 
     NOMINATIM_USER_AGENT_NAME="FloodImpactAnalysis"  
     OPENAI_API_KEY="<YOUR OPENAI API KEY HERE>"  
+    CARTO_BASEMAP_API_KEY="<YOUR CARTO BASEMAP API KEY HERE>"  
 
 An OpenAI API key is required only when using the Natural language analysis method. Parameter-based analysis does not require OpenAI.  
+
+A CARTO API key is optional - if you do not obtain and configure this API key, analysis results will be displayed without a basemap.
 
 The `.env` file is excluded from Git and should not be committed.
 
