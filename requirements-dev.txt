@@ -1,10 +1,5 @@
-python-dotenv==1.2.3
-geopy==2.5.0
-pyproj==3.8.0
-requests==2.34.2
-geopandas==1.1.4
-shapely==2.1.2
-osmnx==2.1.1
-folium==0.20.0
-streamlit==1.63.0
+# Main application dependencies - included from production file
+-r requirements.txt
+
+# Pytest is only required to run the test scripts, it is not required for application execution
 pytest==9.1.1
