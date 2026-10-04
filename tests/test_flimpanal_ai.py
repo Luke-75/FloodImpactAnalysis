@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from src.flimpanal_ai import AnalysisRequest
 from unittest.mock import patch
 from src.flimpanal_ai import AnalysisRequest, ExtractedAnalysisRequest, parse_analysis_request
-
+from openai import OpenAIError
 
 
 def test_analysis_request_accepts_valid_values():
@@ -124,6 +124,20 @@ def test_parse_analysis_request_rejects_radius_above_maximum():
         with pytest.raises(ValidationError):
             parse_analysis_request(
                 "Analyze flooding within 20 km of Prague."
+            )
+
+
+
+def test_parse_analysis_request_propagates_openai_error():
+    with patch("src.flimpanal_ai.OpenAI") as mock_openai:
+        mock_client = mock_openai.return_value
+        mock_client.responses.parse.side_effect = OpenAIError(
+            "Simulated API failure"
+        )
+
+        with pytest.raises(OpenAIError):
+            parse_analysis_request(
+                "Analyze flooding within 3 km of Brno."
             )
 
 
