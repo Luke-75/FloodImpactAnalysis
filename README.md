@@ -1,10 +1,14 @@
 # Flood Impact Analysis
 
-A geospatial application for identifying buildings whose footprints intersect Q100 flood zones in the Czech Republic. It calculates building exposure and displays the analysis area, flood zone, and affected buildings on an interactive map.
+A geospatial application for identifying buildings whose footprints intersect Q100 flood zones in the Czech Republic. It calculates building exposure and displays the analysis area, flood zone, and affected buildings on an interactive map.   
+
+Users can define the analysis directly using location and radius parameters or describe the requested analysis in natural language.  
 
 ## Features
 
-- Search for a location and define an analysis radius.
+- Analyze an area using explicit location and radius parameters.
+- Describe an analysis in natural language and convert it into validated location and radius parameters.
+- Validate AI-extracted parameters with Pydantic before starting geospatial processing.
 - Retrieve Q100 flood-zone geometry for the selected area.
 - Retrieve building footprints from OpenStreetMap.
 - Identify buildings with positive-area overlap with the flood zone.
@@ -24,21 +28,30 @@ A geospatial application for identifying buildings whose footprints intersect Q1
 
 ## How It Works
 
-        geocode  
-        ↓  
-        create analysis area  
-        ↓  
-        validate Czech coverage  
-        ├── invalid → stop  
-        │  
-        └── valid  
-                ↓  
-            VÚV request  
-                ↓  
-            OSM request  
-                ↓  
-            analysis  
-
+        parameter input              natural-language input  
+              │                              │  
+              │                         OpenAI extraction  
+              │                              │  
+              │                      Pydantic validation  
+              │                              │  
+              └──────────────┬───────────────┘  
+                             ↓  
+                          geocode  
+                             ↓  
+                    create analysis area  
+                             ↓  
+                   validate Czech coverage  
+                    ├── invalid → stop  
+                    │  
+                    └── valid  
+                            ↓  
+                        VÚV request  
+                            ↓  
+                        OSM request  
+                            ↓  
+                        analysis  
+  
+Natural-language input is used only to extract a location and analysis radius into a validated structured request. Geocoding, flood-zone retrieval, building retrieval, spatial intersection, exposure calculations, and mapping remain deterministic.    
 
 ## Architecture
 
@@ -47,16 +60,19 @@ A geospatial application for identifying buildings whose footprints intersect Q1
         ├── data/  
         │   └── czech_republic.geojson  
         ├── screenshots/  
-        │   ├── prague-analysis.png  
+        │   ├── brno-analysis-natural-language.png  
+        │   ├── prague-analysis-parameters.png  
         │   └── prague-map.png  
         ├── src/  
+        │   ├── flimpanal_ai.py  
         │   ├── flimpanal_geo.py  
         │   ├── flimpanal_map.py  
         │   └── flimpanal_ui.py  
         └── tests/  
+            ├── test_flimpanal_ai.py  
             ├── test_flimpanal_geo.py  
             └── test_flimpanal_map.py  
-
+  
 
 ## Technology Stack
 
@@ -66,13 +82,26 @@ A geospatial application for identifying buildings whose footprints intersect Q1
 - **GeoPandas / Shapely / pyproj** — geospatial processing
 - **GeoPy** — geocoding and distance utilities
 - **Folium** — interactive map visualization
+- **OpenAI API** — natural-language request interpretation
+- **Pydantic** — structured request validation
 
 ## External Services/Data Used
 
+OpenAI                                          → natural-language request interpretation  
 Nominatim                                       → location geocoding  
 Natural Earth                                   → Czech Republic coverage validation  
 Výzkumný ústav vodohospodářský (VÚV)            → Q100 flood-zone geometry  
 OpenStreetMap                                   → building footprints  
+
+### OpenAI
+
+Used to interpret natural-language analysis requests and extract structured location and radius parameters.  
+  
+The extracted values are validated by the application before geospatial processing begins. OpenAI is not used for flood-zone geometry, spatial intersection, exposure calculations, or determination of affected buildings.  
+
+OpenAI Usage Policies:
+https://openai.com/policies/usage-policies/
+
 
 ### Nominatim
 
@@ -122,7 +151,7 @@ https://heis.vuv.cz/xmicka/record/basic/CZ-VUV-MD-ZaplavUzemi
 
 ## Getting Started
 
-The examples below use Windows.
+The examples below use Windows.  
 
 ### 1. Clone the repository
 
@@ -141,15 +170,18 @@ The examples below use Windows.
 
 ### 4. Configure the application
 
-The application uses Nominatim for geocoding and requires an identifying User-Agent.
-
+The application uses Nominatim for geocoding and the OpenAI API for optional natural-language request interpretation.  
+  
 Copy `.env.example` to `.env`:
 
     copy .env.example .env
 
-Then edit `.env` and set a descriptive application identifier:
+Then edit `.env` and configure the required environment variables:
 
-    NOMINATIM_USER_AGENT_NAME="FloodImpactAnalysis"
+    NOMINATIM_USER_AGENT_NAME="FloodImpactAnalysis"  
+    OPENAI_API_KEY="<YOUR OPENAI API KEY HERE>"  
+
+An OpenAI API key is required only when using the Natural language analysis method. Parameter-based analysis does not require OpenAI.  
 
 The `.env` file is excluded from Git and should not be committed.
 
@@ -162,11 +194,12 @@ Run floodimpactanalysis.py through Streamlit:
 
 ## Running Tests
 
-The project includes automated tests for geospatial processing, external-data handling, application orchestration, and map generation.
+The project includes automated tests for AI request parsing and validation, geospatial processing, external-data handling, application orchestration, and map generation. OpenAI interactions are mocked in the automated tests, so the test suite does not make real API requests.  
 
-The tests are organized into two modules:
+The tests are organized into three modules:
 
     tests/
+    ├── test_flimpanal_ai.py
     ├── test_flimpanal_geo.py
     └── test_flimpanal_map.py
 
@@ -179,7 +212,7 @@ Run the complete test suite from the project root:
     python -m pytest tests -v
 
 
-## Example
+## Examples
 
 For example, analyzing `Prague` with a 2 km radius produces an analysis area covering central Prague.  
   
@@ -200,12 +233,22 @@ The interactive map displays:
 
 Hovering over an affected building displays its total footprint area, flooded footprint area, and percentage exposure.  
   
+The same analysis can also be initiated with a natural-language request, for example:  
+
+    Show me buildings exposed to flooding within 3 km of Brno.
+
+The application interprets this as `Brno` with a `3 km` analysis radius, validates the extracted parameters, and passes them to the same deterministic geospatial pipeline used by parameter-based analysis.  
+  
 
 ## Screenshots
 
-### Analysis output
+### Analysis output - Parameters
 
-![FloodImpactAnalysis - Analysis Output](screenshots/prague-analysis.png)
+![FloodImpactAnalysis - Analysis Output - Parameters](screenshots/prague-analysis-parameters.png)
+
+### Analysis output - Natural Language
+
+![FloodImpactAnalysis - Analysis Output - Natural Language](screenshots/brno-analysis-natural-language.png)
 
 ### Building exposure detail
 
