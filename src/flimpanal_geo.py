@@ -135,7 +135,7 @@ def prepare_buildings(
     # concatenate retrieved tiles --> all buildings
     buildings = pd.concat(building_tiles)
 
-    # dedupliction
+    # deduplication
     buildings = buildings[
         ~buildings.index.duplicated(keep="first")
     ].copy()
