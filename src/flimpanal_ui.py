@@ -99,8 +99,6 @@ def run_ui():
         else:
             st.success("Analysis complete")
 
-        #st.write(f"Total buildings: {len(buildings)}")
-        #st.write(f"Affected buildings: {len(affected_buildings)}")
 
         col1, col2, col3 = st.columns(3)
 
@@ -125,7 +123,7 @@ def run_ui():
 
         html = flood_map.get_root().render()
 
-        #st.write(f"Map HTML size: {len(html):,} characters")
+
 
         components.html(
             #flood_map.get_root().render(),
@@ -136,5 +134,4 @@ def run_ui():
 
 
 
-#if __name__ == "__main__":
-#    run_ui()
+

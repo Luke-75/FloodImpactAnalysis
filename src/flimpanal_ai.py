@@ -84,10 +84,3 @@ def parse_analysis_request(query: str) -> AnalysisRequest:
 
 
 
-
-if __name__ == "__main__":
-    print(parse_analysis_request("Analyze flooding within 20 km of Prague."))
-
-
-
-

@@ -10,14 +10,7 @@ import osmnx as ox
 from shapely.geometry import box
 import pandas as pd
 
-# TODO: Validate that the analysis area is within the Czech Republic.
-# VUV flood-zone data used by this application only covers Czech territory.
 
-
-VUV_WFS_URL = (
-    "https://ags2.vuv.cz/arcgis/services/isvs_voda/"
-    "isvs_voda/MapServer/WFSServer"
-)
 
 VUV_Q100_QUERY_URL = (
     "https://ags2.vuv.cz/arcgis/rest/services/"
@@ -41,11 +34,7 @@ def geocode(address: str) -> tuple[float, float]:
         query = address
     )
     if location:
-        #return{
-        #    location.latitude,
-        #    location.longitude 
-        #}
-        return location.latitude, location.longitude
+         return location.latitude, location.longitude
     else:
         raise ValueError(f"Could not find location for address: {address}")
 
@@ -73,28 +62,7 @@ def create_bbox(
 
     return min_x, min_y, max_x, max_y
 
-"""
-# the WFS query did not return any results, switched to REST
-def get_q100_flood_zones(
-    bbox: tuple[float, float, float, float]
-) -> str:
 
-    min_x, min_y, max_x, max_y = bbox
-
-    vuv_wfs_query_params = {
-        "service": "WFS",
-        "version": "2.0.0",
-        "request": "GetFeature",
-        "typeNames": "ZaplavUzemi_Q100",
-        "bbox": f"{min_y},{min_x},{max_y},{max_x},EPSG:5514",
-        #"bbox": f"{min_x},{min_y},{max_x},{max_y},EPSG:5514",
-    }
-
-    response = requests.get(VUV_WFS_URL, params=vuv_wfs_query_params, timeout=30)
-    response.raise_for_status()
-
-    return response.text
-"""
 
 def get_q100_flood_zones(
     bbox: tuple[float, float, float, float]
