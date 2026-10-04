@@ -81,7 +81,7 @@ Natural-language input is used only to extract a location and analysis radius in
 - **OSMnx / OpenStreetMap** — geospatial data retrieval
 - **GeoPandas / Shapely / pyproj** — geospatial processing
 - **GeoPy** — geocoding and distance utilities
-- **Folium / CARTO/Positron** — interactive map visualization
+- **Folium / CARTO Positron** — interactive map visualization
 - **OpenAI API** — natural-language request interpretation
 - **Pydantic** — structured request validation
 
