@@ -79,7 +79,6 @@ def parse_analysis_request(query: str) -> AnalysisRequest:
         radius_km=extracted.radius_km,
     )
 
-    #return response.output_parsed
 
 
 

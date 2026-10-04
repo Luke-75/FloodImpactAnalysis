@@ -126,7 +126,6 @@ def run_ui():
 
 
         components.html(
-            #flood_map.get_root().render(),
             html,
             height=650,
             scrolling=False,
